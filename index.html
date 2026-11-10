@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2e9">
+  <title>Cook &amp; Complete — a kitchen powered by little wins</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f2e9; --card: #fffdf8; --ink: #30362f; --muted: #898b80;
+      --line: #e7e2d5; --green: #587d58; --green-dark: #3e6346; --green-pale: #eaf1e6;
+      --red: #c94f43; --red-pale: #fff0e9; --gold: #a57126; --shadow: 0 12px 32px #493a2310;
+    }
+    [data-theme="night"] {
+      color-scheme: dark; --paper: #20231f; --card: #2a2e29; --ink: #f2f0e7; --muted: #aaa99e;
+      --line: #3d423b; --green: #91b58f; --green-dark: #bad5b5; --green-pale: #354337;
+      --red: #ef887b; --red-pale: #47312d; --gold: #edcc83; --shadow: 0 12px 32px #0003;
+    }
+    * { box-sizing: border-box }
+    body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); font: 14px/1.5 "Segoe UI", Arial, sans-serif }
+    button, input, select { font: inherit; color: inherit }
+    button { cursor: pointer }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #6c98664d; outline-offset: 2px }
+    .app { max-width: 1460px; min-height: 100vh; padding: 22px clamp(14px, 3vw, 40px) 36px; margin: auto }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 23px }
+    .brand { display: flex; align-items: center; gap: 11px }
+    .brand-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 14px; background: var(--green); color: white; box-shadow: 0 6px 15px #4263442b }
+    .brand-icon svg { width: 27px; height: 27px }
+    .brand-name { font-size: 21px; font-weight: 900; letter-spacing: -.8px; line-height: 1.1 }
+    .brand-name span { color: var(--green) }
+    .brand-subtitle { margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: 1.1px }
+    .top-actions { display: flex; align-items: center; gap: 8px }
+    .coin-pill, .icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 39px; padding: 0 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--card) }
+    .coin-pill { color: var(--gold); background: #fff7e2; border-color: #efdfb9; font-weight: 900 }
+    [data-theme="night"] .coin-pill { background: #3d3729; border-color: #51482f }
+    .icon-button { width: 39px; padding: 0 }
+    .page-intro { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 16px }
+    .page-intro h1 { margin: 0; font-size: clamp(24px, 3vw, 32px); line-height: 1.12; letter-spacing: -1.1px }
+    .page-intro p { margin: 6px 0 0; color: var(--muted); font-size: 12px }
+    .level { display: flex; align-items: center; gap: 9px; min-width: 150px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--card) }
+    .level-badge { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 9px; color: white; background: #df9450; font-weight: 900 }
+    .level-info { flex: 1; font-size: 9px; font-weight: 900 }
+    .level-info small { display: block; color: var(--muted); font-weight: 500 }
+    .xp-track, .meter-track { height: 6px; margin-top: 4px; overflow: hidden; border-radius: 7px; background: var(--line) }
+    .xp-track span, .meter-fill { display: block; width: 0; height: 100%; border-radius: inherit; transition: width .35s ease }
+    .xp-track span { background: #df9450 }
+    .dashboard { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, .8fr); align-items: start; gap: 17px }
+    .column { display: grid; gap: 16px; min-width: 0 }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: var(--shadow) }
+    .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px 12px }
+    .card-heading h2 { margin: 0; font-size: 15px; font-weight: 900 }
+    .subheading { margin-top: 3px; color: var(--muted); font-size: 10px }
+    .kitchen { padding-bottom: 14px }
+    .kitchen-heading { align-items: start }
+    .live-label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .9px }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #85a86d; box-shadow: 0 0 0 4px #85a86d22 }
+    .kitchen-heading h2 { margin-top: 4px }
+    .scene { position: relative; margin: 0 12px; overflow: hidden; border: 1px solid #dcd7c7; border-radius: 15px; background: #eee9dc }
+    [data-theme="night"] .scene { border-color: #45483c; background: #343a32 }
+    .scene svg { display: block; width: 100%; height: auto }
+    .scene-badge { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 6px; max-width: calc(100% - 20px); padding: 6px 9px; border: 1px solid #ffffffa6; border-radius: 9px; color: #39483a; background: #fffdf0e8; font-size: 9px; font-weight: 900; letter-spacing: .4px }
+    .scene-badge svg { width: 13px; height: 13px }
+    .scene-status { position: absolute; right: 10px; bottom: 9px; padding: 5px 8px; border-radius: 8px; color: #354334; background: #fffdf0e8; font-size: 9px; font-weight: 900 }
+    .scene-status.alert { color: #963f33; background: #fff0e9ed }
+    .cook-clock { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 11px 15px 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; background: color-mix(in srgb, var(--card) 74%, var(--paper)) }
+    .clock-label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px }
+    .clock-value { color: var(--green-dark); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 900 }
+    .clock-value.urgent { color: var(--red) }
+    .delay-button { padding: 5px 8px; border: 1px solid #e8c5bb; border-radius: 8px; color: var(--red); background: transparent; font-size: 9px; font-weight: 900 }
+    .delay-button:hover { background: var(--red-pale) }
+    .meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 11px 15px 0 }
+    .meter { padding: 9px; border: 1px solid var(--line); border-radius: 11px }
+    .meter-top { display: flex; justify-content: space-between; gap: 5px; font-size: 9px; font-weight: 900 }
+    .meter-title { color: var(--muted) }
+    #quality-fill { background: #6fa064 }
+    #health-fill { background: #e39173 }
+    #coins-fill { background: #e2b54d }
+    .quality-burned #quality-fill { background: #cb5245 }
+    .quality-burned #quality-value { color: var(--red) }
+    .task-card { padding-bottom: 6px }
+    .add-button, .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 11px; border: 0; border-radius: 9px; color: white; background: var(--green); font-size: 10px; font-weight: 900 }
+    .add-button:hover, .primary-button:hover { filter: brightness(1.07) }
+    .filters { display: flex; gap: 4px; margin: 0 16px 4px; padding: 4px; border-radius: 9px; background: color-mix(in srgb, var(--paper) 75%, var(--card)) }
+    .filter-button { padding: 5px 10px; border: 0; border-radius: 7px; color: var(--muted); background: transparent; font-size: 9px; font-weight: 800 }
+    .filter-button.active { color: var(--ink); background: var(--card); box-shadow: 0 1px 5px #3332 }
+    .task-list { padding: 0 16px }
+    .task-row { display: grid; grid-template-columns: 19px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 11px 1px; border-bottom: 1px solid var(--line) }
+    .task-check { appearance: none; display: grid; place-items: center; width: 18px; height: 18px; margin: 0; border: 1.5px solid #c9c7b9; border-radius: 6px; background: var(--card) }
+    .task-check:checked { border-color: var(--green); background: var(--green) }
+    .task-check:checked::after { content: "✓"; color: white; font-size: 12px; font-weight: 900 }
+    .task-title { overflow: hidden; font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap }
+    .task-row.done .task-title { color: var(--muted); text-decoration: line-through }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; color: var(--muted); font-size: 9px }
+    .task-meta .overdue { color: var(--red); font-weight: 900 }
+    .task-tools { display: flex; align-items: center; gap: 4px }
+    .priority { padding: 3px 6px; border-radius: 6px; font-size: 8px; font-weight: 900; text-transform: capitalize }
+    .priority.high { color: #a94339; background: #fde9e1 }
+    .priority.medium { color: #946c1d; background: #fff1d2 }
+    .priority.low { color: #47764b; background: var(--green-pale) }
+    .task-icon { display: grid; place-items: center; width: 23px; height: 23px; padding: 0; border: 0; border-radius: 6px; color: var(--muted); background: transparent }
+    .task-icon:hover { color: var(--green-dark); background: var(--green-pale) }
+    .empty { padding: 23px 10px; color: var(--muted); font-size: 11px; text-align: center }
+    .empty svg { display: block; width: 30px; height: 30px; margin: 0 auto 6px; color: var(--green) }
+    .shop-list { display: grid; gap: 8px; padding: 0 15px 16px }
+    .shop-item { display: flex; align-items: center; gap: 9px; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--paper) 54%, var(--card)) }
+    .shop-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px; color: var(--green-dark); background: var(--green-pale) }
+    .shop-icon svg { width: 21px; height: 21px }
+    .shop-copy { flex: 1; min-width: 0 }
+    .shop-name { font-size: 10px; font-weight: 900 }
+    .shop-desc { margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.3 }
+    .buy-button { padding: 6px 8px; border: 0; border-radius: 7px; color: var(--green-dark); background: var(--green-pale); font-size: 9px; font-weight: 900; white-space: nowrap }
+    .buy-button:disabled { opacity: .48; cursor: not-allowed }
+    .log-list { padding: 0 16px 12px }
+    .log-row { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line) }
+    .log-row:last-child { border-bottom: 0 }
+    .log-icon { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; color: var(--green-dark); background: var(--green-pale) }
+    .log-icon svg { width: 14px; height: 14px }
+    .log-text { font-size: 9px; line-height: 1.4 }
+    .log-time { display: block; margin-top: 2px; color: var(--muted); font-size: 8px }
+    .toast { position: fixed; z-index: 5; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 8px; max-width: min(390px, calc(100vw - 30px)); padding: 11px 14px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); box-shadow: var(--shadow); font-size: 11px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s }
+    .toast.show { opacity: 1; transform: translateY(0) }
+    .toast svg { width: 16px; height: 16px; flex: 0 0 16px; color: var(--green) }
+    dialog { width: min(410px, calc(100vw - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: var(--card); box-shadow: 0 18px 65px #24261e40 }
+    dialog::backdrop { background: #22291e77; backdrop-filter: blur(2px) }
+    .dialog-content { padding: 20px }
+    .dialog-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px }
+    .dialog-title h2 { margin: 0; font-size: 17px }
+    .close-button { width: 28px; height: 28px; border: 0; border-radius: 7px; background: var(--paper) }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+    .field { display: grid; gap: 5px }
+    .field.full { grid-column: 1 / -1 }
+    .field label { color: var(--muted); font-size: 9px; font-weight: 900 }
+    .field input, .field select { width: 100%; padding: 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); font-size: 11px }
+    .dialog-actions { display: flex; justify-content: end; gap: 7px; margin-top: 15px }
+    .cancel-button { padding: 8px 11px; border: 1px solid var(--line); border-radius: 8px; background: transparent; font-size: 10px; font-weight: 800 }
+    .coin-reward { color: var(--gold); font-size: 9px; font-weight: 900; white-space: nowrap }
+    .steam { transform-box: fill-box; transform-origin: center bottom; animation: steam 3s ease-in-out infinite }
+    .steam.delay { animation-delay: 1.3s }
+    .stir-arm { transform-box: fill-box; transform-origin: 12% 25% }
+    .action-stir .stir-arm { animation: stir .45s ease-in-out 4 alternate }
+    .action-chop .stir-arm { animation: chop .22s ease-in-out 7 alternate }
+    .action-chop .chopped { animation: chop-bit .45s ease-out both }
+    .smoke { opacity: 0 }
+    .smoking .smoke { opacity: .8; animation: smoke 2.4s ease-out infinite }
+    .flames { opacity: 0 }
+    .burning .flames { opacity: 1; animation: flame .4s ease-in-out infinite alternate }
+    .burning .soup { fill: #302a27 }
+    .hurt-mark { opacity: 0; transition: opacity .2s }
+    .hurt .hurt-mark { opacity: 1 }
+    @keyframes stir { to { transform: rotate(32deg) translateX(4px) } }
+    @keyframes chop { to { transform: rotate(-35deg) translateY(8px) } }
+    @keyframes chop-bit { 0% { opacity: 0; transform: translateY(-13px) } 100% { opacity: 1; transform: translateY(0) } }
+    @keyframes smoke { 0% { opacity: 0; transform: translateY(8px) scale(.7) } 35% { opacity: .8 } 100% { opacity: 0; transform: translateY(-36px) scale(1.3) } }
+    @keyframes flame { to { transform: scale(1.12) rotate(3deg) } }
+    @keyframes steam { 0%,100% { opacity: .3; transform: translateY(4px) } 50% { opacity: .8; transform: translateY(-3px) } }
+    @media (max-width: 850px) { .dashboard { grid-template-columns: minmax(0,1.2fr) minmax(280px,.8fr); gap: 12px } .column { gap: 12px } .task-tools { gap: 2px } }
+    @media (max-width: 680px) { .app { padding: 14px 12px 24px } .dashboard { grid-template-columns: 1fr } .page-intro { align-items: start; flex-direction: column } .level { width: 100% } .side-column { grid-template-columns: 1fr 1fr; align-items: start } .log-card { grid-column: 1 / -1 } }
+    @media (max-width: 460px) { .app { padding: 11px 9px 22px } .topbar { margin-bottom: 16px } .brand-icon { width: 37px; height: 37px } .brand-name { font-size: 19px } .coin-pill, .icon-button { height: 35px } .icon-button { width: 35px } .page-intro { gap: 10px; margin-bottom: 12px } .page-intro h1 { font-size: 24px } .card-heading { padding: 13px 13px 10px } .scene { margin: 0 7px } .meters { gap: 5px; padding: 8px 8px 0 } .meter { padding: 7px 6px } .meter-top { font-size: 8px } .cook-clock { margin: 9px 9px 0; padding: 7px } .clock-label { font-size: 9px } .task-list { padding: 0 11px } .filters { margin-right: 11px; margin-left: 11px } .task-row { grid-template-columns: 18px minmax(0,1fr) auto; gap: 6px } .task-title { font-size: 10px } .priority { padding: 3px 4px; font-size: 7px } .coin-reward { display: none } .side-column { grid-template-columns: 1fr } .log-card { grid-column: auto } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 18h18l-2 9H9l-2-9Z" fill="currentColor"/><path d="M9 17c0-4 3-7 7-7s7 3 7 7M12 6v3m8-3v3M5 18h22" stroke="#fffdf8" stroke-width="1.8" stroke-linecap="round"/><path d="M16 4c2 2 2 3 0 5-2-2-2-3 0-5Z" fill="#edc768"/></svg></div>
+        <div><div class="brand-name">Cook <span>&amp;</span> Complete</div><div class="brand-subtitle">A KITCHEN POWERED BY LITTLE WINS</div></div>
+      </div>
+      <div class="top-actions">
+        <div class="coin-pill" aria-label="Coins"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12.5 7.3c-.4-.7-1.1-1-2.2-1-1.2 0-2 .6-2 1.5 0 2.2 4.4.8 4.4 3.4 0 1-.9 1.7-2.3 1.7-1.1 0-2-.4-2.5-1.2M10.5 5v10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span id="coin-count">0</span> coins</div>
+        <button class="icon-button" id="theme-toggle" aria-label="Toggle dark theme" title="Toggle theme"><svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true"><path d="M16 12a7 7 0 0 1-8-8 7 7 0 1 0 8 8Z" stroke="currentColor" stroke-width="1.5"/></svg></button>
+      </div>
+    </header>
+
+    <section class="page-intro">
+      <div><h1>Your daily wins are on the menu.</h1><p>Complete a task to help Chef Pip cook. Let the timer run out and the kitchen gets into trouble!</p></div>
+      <div class="level" aria-label="Experience level"><div class="level-badge" id="level-number">1</div><div class="level-info">CHEF LEVEL <span id="level-label">1</span><small id="xp-label">0 / 100 XP</small><div class="xp-track"><span id="xp-fill"></span></div></div></div>
+    </section>
+
+    <main class="dashboard">
+      <div class="column main-column">
+        <section class="card kitchen" aria-labelledby="kitchen-title">
+          <div class="card-heading kitchen-heading">
+            <div><div class="live-label"><span class="live-dot"></span><span id="kitchen-label">THE LITTLE KITCHEN</span></div><h2 id="kitchen-title">Chef Pip's cooking studio</h2></div>
+            <span class="subheading">Fresh ingredients, fresh start</span>
+          </div>
+          <div class="scene" id="scene">
+            <div class="scene-badge"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m10 2 2 5 5 .6-3.7 3.5.9 5-4.2-2.5-4.2 2.5.8-5L3 7.6 8 7l2-5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="scene-message">TASKS KEEP THE KITCHEN MOVING</span></div>
+            <div class="scene-status" id="scene-status">Simmering gently</div>
+            <svg id="kitchen-art" viewBox="0 0 900 390" role="img" aria-labelledby="art-title art-desc" xmlns="http://www.w3.org/2000/svg">
+              <title id="art-title">Cook and Complete 2D kitchen</title><desc id="art-desc">Chef Pip cooks a simmering pot on the center stove, with a cutting board and vegetables at the side.</desc>
+              <defs>
+                <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8f3e7"/><stop offset="1" stop-color="#eae4d6"/></linearGradient>
+                <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d7ae7d"/><stop offset="1" stop-color="#b88054"/></linearGradient>
+                <linearGradient id="pot-body" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#65726a"/><stop offset="1" stop-color="#37443e"/></linearGradient>
+                <linearGradient id="soup" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e5ae59"/><stop offset="1" stop-color="#cc7542"/></linearGradient>
+              </defs>
+              <rect width="900" height="390" fill="url(#wall)"/>
+              <path d="M0 0h900v30H0z" fill="#d9dfcf"/><path d="M0 31h900" stroke="#c5cbb8" stroke-width="3"/>
+              <!-- Window and herb shelf. -->
+              <rect x="34" y="55" width="212" height="126" rx="8" fill="#cedccf" stroke="#b9b29f" stroke-width="5"/>
+              <path d="M140 56v124M35 119h210" stroke="#fffaf0" stroke-width="7"/>
+              <path d="M48 83q34-24 77 5 40-28 108-4M48 142q35-16 76 9 44-23 108-5" fill="none" stroke="#fffaf0" stroke-width="4" opacity=".8"/>
+              <rect x="667" y="53" width="194" height="12" rx="5" fill="#a8764f"/>
+              <path d="M687 65v71m151-71v71" stroke="#936441" stroke-width="5"/>
+              <rect x="681" y="82" width="39" height="43" rx="5" fill="#e2c36d"/><path d="M688 93h25m-25 8h25m-25 8h18" stroke="#fff2c8" stroke-width="3" stroke-linecap="round"/>
+              <rect x="735" y="75" width="40" height="50" rx="5" fill="#d3794f"/><path d="M742 88h26m-26 8h26m-26 8h20" stroke="#ffe0bd" stroke-width="3" stroke-linecap="round"/>
+              <rect x="790" y="85" width="54" height="40" rx="5" fill="#9db78c"/><path d="M799 96h36m-36 8h36m-36 8h24" stroke="#eff4dc" stroke-width="3" stroke-linecap="round"/>
+              <!-- Continuous wooden counter and cabinet fronts. -->
+              <rect x="24" y="212" width="852" height="123" rx="10" fill="url(#wood)"/>
+              <path d="M26 234h848M45 251h817M70 291h770" stroke="#e0b98e" stroke-width="3" opacity=".44"/>
+              <rect x="18" y="326" width="864" height="31" rx="5" fill="#896245"/>
+              <rect x="67" y="336" width="184" height="17" rx="5" fill="#9e7654"/><path d="M158 337v14" stroke="#d2ac7f" stroke-width="3"/>
+              <rect x="647" y="336" width="184" height="17" rx="5" fill="#9e7654"/><path d="M739 337v14" stroke="#d2ac7f" stroke-width="3"/>
+              <!-- Fresh herb pot. -->
+              <path d="M72 209v-43c0-9 7-15 14-15s14 6 14 15v43" fill="#749665" stroke="#527b55" stroke-width="3"/>
+              <path d="M85 176c-24-20-33-7-13 5m13-12c21-23 32-10 14 5" fill="#91b379" stroke="#527b55" stroke-width="2"/>
+              <rect x="66" y="207" width="42" height="26" rx="6" fill="#cb7955"/><path d="M71 207h32" stroke="#edb18a" stroke-width="4"/>
+              <!-- Chef Pip: hand-drawn inline SVG, with stirring/chopping animations on the utensil arm. -->
+              <g id="chef">
+                <ellipse cx="361" cy="312" rx="61" ry="10" fill="#916c51" opacity=".2"/>
+                <path d="M322 246q4-20 24-23h34q22 3 25 23l-5 64h-73z" fill="#f3f0e5" stroke="#aca590" stroke-width="3"/>
+                <path d="M330 256h66v49h-66z" fill="#547d58"/>
+                <path d="M342 262h42v6h-42z" fill="#76a073"/>
+                <path d="M352 268h20v39h-20z" fill="#e2bb5b"/>
+                <path d="M356 278c-10 8-8 15 2 14 9-1 9-9 3-13-4 4-6 9-4 13" fill="none" stroke="#fff3cd" stroke-width="2"/>
+                <path d="M330 293h66v11h-66z" fill="#426044"/>
+                <path d="M335 244q-2-30 27-33 30 3 28 33" fill="#f5f0e5" stroke="#b0a994" stroke-width="3"/>
+                <path d="M356 210c-3-15 2-23 11-25 11 1 14 10 11 23 14-2 18 5 14 13-6 9-17 9-25 5-13 7-26 4-31-4-3-7 4-13 20-12Z" fill="#fffdf3" stroke="#b0a994" stroke-width="3"/>
+                <path d="M347 234q4-5 9 0m16 0q4-5 9 0" fill="none" stroke="#41473f" stroke-width="3" stroke-linecap="round"/>
+                <path id="chef-smile" d="M357 243q6 6 12 0" fill="none" stroke="#bc6b52" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="352" cy="239" r="2.5" fill="#d98f79" opacity=".55"/><circle cx="374" cy="239" r="2.5" fill="#d98f79" opacity=".55"/>
+                <path d="M329 254q-19 1-25 17l-15 19q-4 8 4 11 6 2 11-5l22-21" fill="#f0c39b" stroke="#a98768" stroke-width="3" stroke-linecap="round"/>
+                <g id="chef-arm" class="stir-arm">
+                  <path d="M392 255q18 2 26 17l10 19q4 8-4 11-7 2-11-6l-16-18-9-8" fill="#f0c39b" stroke="#a98768" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M423 290 568 222" stroke="#8e7555" stroke-width="5" stroke-linecap="round"/>
+                  <ellipse cx="571" cy="220" rx="6" ry="11" transform="rotate(58 571 220)" fill="#8e7555"/>
+                </g>
+                <g class="hurt-mark"><path d="m294 279 10 8m-11-2 11-5" stroke="#c94f43" stroke-width="4" stroke-linecap="round"/><circle cx="299" cy="283" r="12" fill="none" stroke="#c94f43" stroke-width="2" stroke-dasharray="3 3"/></g>
+              </g>
+              <!-- Cutting board, knife and vegetables at the side. -->
+              <rect x="115" y="275" width="143" height="18" rx="8" fill="#a86e47"/><rect x="126" y="281" width="120" height="8" rx="4" fill="#c48b5d"/>
+              <path d="m164 276 35-27 6 7-32 26Z" fill="#d8d8ca" stroke="#787d70" stroke-width="2"/><path d="m197 251 11-9 8 8-11 8" fill="#75624b"/>
+              <circle cx="143" cy="268" r="12" fill="#d66b50"/><path d="M139 256q5-8 11-4" fill="none" stroke="#6f9561" stroke-width="4"/>
+              <path d="M155 274q9-13 16 1-6 11-15 4" fill="#83a86b"/>
+              <circle class="chopped" cx="141" cy="267" r="6" fill="#edaa61"/><circle class="chopped" cx="158" cy="270" r="5" fill="#83a86b"/>
+              <!-- Center stove, simmering pot, steam, and fire/smoke effects. -->
+              <rect x="492" y="256" width="304" height="73" rx="12" fill="#737e75" stroke="#49564e" stroke-width="4"/>
+              <rect x="508" y="267" width="272" height="49" rx="9" fill="#414b44"/>
+              <circle cx="535" cy="292" r="8" fill="#b9b8a8"/><circle cx="566" cy="292" r="8" fill="#b9b8a8"/>
+              <circle cx="724" cy="292" r="8" fill="#d9a65a"/><circle cx="755" cy="292" r="8" fill="#b9b8a8"/>
+              <path d="M555 253q0-22 28-22h115q27 0 27 22" fill="#738078" stroke="#4b5650" stroke-width="4"/>
+              <path d="M579 252h119" stroke="#adb3a6" stroke-width="4" stroke-linecap="round"/>
+              <path class="steam" d="M612 228q-8-13 2-22 7-9 0-16" fill="none" stroke="#fffdf3" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+              <path class="steam delay" d="M661 228q-8-13 2-22 7-9 0-16" fill="none" stroke="#fffdf3" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+              <ellipse cx="627" cy="251" rx="68" ry="11" fill="#303a35"/>
+              <path d="M560 251h134l-11 54q-4 13-17 13h-77q-13 0-17-13Z" fill="url(#pot-body)" stroke="#303a35" stroke-width="4"/>
+              <path d="M692 261q30-10 45-2l-2 12q-17-4-40 5" fill="#4a534c" stroke="#303a35" stroke-width="4"/>
+              <ellipse class="soup" cx="626" cy="254" rx="59" ry="9" fill="url(#soup)"/>
+              <path d="M588 254q14-8 28 0t29 0q13-7 22 0" fill="none" stroke="#f4cb78" stroke-width="3.5"/>
+              <circle cx="610" cy="252" r="3.5" fill="#87a464"/><circle cx="641" cy="254" r="3" fill="#f6e5bb"/><circle cx="661" cy="251" r="3.5" fill="#d8724c"/>
+              <path d="M584 329h83" stroke="#555d56" stroke-width="5" stroke-linecap="round"/>
+              <g class="flames"><path d="M594 329q-13-17 0-30 0 10 8 12 5-13 12-20 1 17 10 21 9-9 8-15 15 13 5 32Z" fill="#f0643d"/><path d="M616 327q-7-11 1-21 1 9 6 12 4-9 7-12 3 13 9 21Z" fill="#ffc15d"/></g>
+              <g class="smoke" fill="#65655e"><circle cx="598" cy="204" r="11"/><circle cx="615" cy="187" r="15"/><circle cx="638" cy="204" r="12"/><circle cx="657" cy="185" r="16"/></g>
+              <path d="M819 237h48l-7 31h-36z" fill="#bd8355" stroke="#94623f" stroke-width="3"/>
+              <path d="M829 239q-3-28 13-30 18 3 15 30" fill="#7eaa68" stroke="#557b51" stroke-width="3"/>
+              <path d="M841 236q-20-19-9-29 15 3 12 19 4-23 17-19 5 16-16 29" fill="#92b675" stroke="#557b51" stroke-width="2"/>
+              <circle cx="834" cy="251" r="5.5" fill="#e8a558"/><circle cx="853" cy="253" r="5.5" fill="#d76648"/>
+            </svg>
+          </div>
+          <div class="cook-clock">
+            <span class="clock-label"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true"><circle cx="10" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v4l3 2M7 2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Simmer timer <span id="timer-hint">· a task resets it</span></span>
+            <strong class="clock-value" id="timer-value">02:00</strong>
+            <button class="delay-button" id="delay-button">Fail / Delay</button>
+          </div>
+          <div class="meters">
+            <div class="meter" id="quality-meter"><div class="meter-top"><span class="meter-title">Food quality</span><span id="quality-value">Fresh · 70%</span></div><div class="meter-track"><span class="meter-fill" id="quality-fill"></span></div></div>
+            <div class="meter"><div class="meter-top"><span class="meter-title">Chef health</span><span id="health-value">100%</span></div><div class="meter-track"><span class="meter-fill" id="health-fill"></span></div></div>
+            <div class="meter"><div class="meter-top"><span class="meter-title">Coins earned</span><span id="coins-meter">0</span></div><div class="meter-track"><span class="meter-fill" id="coins-fill"></span></div></div>
+          </div>
+        </section>
+
+        <section class="card task-card" aria-labelledby="tasks-heading">
+          <div class="card-heading"><div><h2 id="tasks-heading">Today's tasks</h2><div class="subheading">Check one off; Chef Pip springs into action.</div></div><button class="add-button" id="add-task"><span aria-hidden="true">＋</span> Add task</button></div>
+          <div class="filters" role="tablist" aria-label="Filter tasks"><button class="filter-button active" data-filter="all" role="tab" aria-selected="true">All</button><button class="filter-button" data-filter="open" role="tab" aria-selected="false">To do</button><button class="filter-button" data-filter="done" role="tab" aria-selected="false">Done</button></div>
+          <div class="task-list" id="task-list"></div>
+        </section>
+      </div>
+
+      <aside class="column side-column" aria-label="Kitchen shop and history">
+        <section class="card shop-card" aria-labelledby="shop-heading">
+          <div class="card-heading"><div><h2 id="shop-heading">Kitchen shop</h2><div class="subheading">Spend coins on a little extra help.</div></div></div>
+          <div class="shop-list" id="shop-list"></div>
+        </section>
+        <section class="card log-card" aria-labelledby="log-heading">
+          <div class="card-heading"><div><h2 id="log-heading">Kitchen log</h2><div class="subheading">Little wins and kitchen mishaps.</div></div><button class="task-icon" id="clear-log" title="Clear log" aria-label="Clear kitchen log">···</button></div>
+          <div class="log-list" id="log-list"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4 10 4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="toast-message"></span></div>
+  <dialog id="task-dialog">
+    <form class="dialog-content" id="task-form">
+      <div class="dialog-title"><h2 id="dialog-heading">Add a daily task</h2><button class="close-button" id="close-dialog" type="button" aria-label="Close dialog">×</button></div>
+      <div class="form-grid">
+        <div class="field full"><label for="task-name">Task name</label><input id="task-name" name="title" type="text" maxlength="90" placeholder="e.g. Prep lunch for tomorrow" required></div>
+        <div class="field full"><label for="task-deadline">Deadline</label><input id="task-deadline" name="deadline" type="datetime-local" required></div>
+        <div class="field"><label for="task-priority">Priority</label><select id="task-priority" name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+        <div class="field"><label for="task-repeat">Repeat</label><select id="task-repeat" name="repeat"><option value="once">Just once</option><option value="daily">Every day</option></select></div>
+      </div>
+      <div class="dialog-actions"><button class="cancel-button" id="cancel-dialog" type="button">Cancel</button><button class="primary-button" id="save-task" type="submit">Add task</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      "use strict";
+      const STORAGE_KEY = "cook-and-complete-v1";
+      const TICK_MS = 1000;
+      const START_TIMER_MS = 120000;
+      const INJURY_GRACE_MS = 45000;
+      const PRIORITY_REWARD = { low: 10, medium: 10, high: 10 };
+      const SHOP = [
+        { id: "bandage", name: "Band-Aid", desc: "Restore 20% chef health.", price: 20, icon: "bandage" },
+        { id: "heat-guard", name: "Heat Guard", desc: "Blocks one burn and gives you extra time.", price: 30, icon: "shield" }
+      ];
+      const $ = (selector) => document.querySelector(selector);
+      const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, Number(value) || 0));
+      const safe = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+      const localInputValue = (time) => {
+        const d = new Date(time), pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+      const startOfDay = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+      const freshState = () => ({
+        coins: 30, xp: 0, theme: "day", quality: 70, health: 100, injured: false, burned: false,
+        timerRemaining: START_TIMER_MS, timerStamp: Date.now(), penaltyStartedAt: null, penaltyOrigin: null,
+        inventory: { heatGuards: 0 },
+        tasks: [
+          { id: uid(), title: "Chop vegetables for lunch", deadline: Date.now() + 4 * 3600000, priority: "medium", repeat: "once", completed: false, lateHandled: false },
+          { id: uid(), title: "Send the project update", deadline: Date.now() + 8 * 3600000, priority: "high", repeat: "once", completed: false, lateHandled: false },
+          { id: uid(), title: "Tidy the kitchen counter", deadline: Date.now() + 20 * 3600000, priority: "low", repeat: "daily", completed: false, lateHandled: false }
+        ],
+        log: [{ type: "start", text: "Chef Pip is ready. The pot is gently simmering.", at: Date.now() }]
+      });
+      const loadState = () => {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (!stored) return freshState();
+          const saved = JSON.parse(stored);
+          if (!saved || typeof saved !== "object") throw new Error("Saved game is not an object.");
+          const defaults = freshState();
+          return {
+            ...defaults, ...saved,
+            inventory: { ...defaults.inventory, ...(saved.inventory || {}) },
+            tasks: Array.isArray(saved.tasks) ? saved.tasks.filter((task) => task && typeof task.title === "string").map((task) => ({ priority: "medium", repeat: "once", completed: false, lateHandled: false, ...task })) : defaults.tasks,
+            log: Array.isArray(saved.log) ? saved.log.slice(0, 30) : defaults.log
+          };
+        } catch (error) {
+          console.error("Could not load Cook & Complete progress.", error);
+          return freshState();
+        }
+      };
+      let state = loadState();
+      let currentFilter = "all";
+      let editingTask = null;
+      let toastTimer;
+      let animationTimer;
+      const logEvent = (type, text) => { state.log.unshift({ type, text, at: Date.now() }); state.log = state.log.slice(0, 30); };
+      const save = () => {
+        state.timerStamp = Date.now();
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+        catch (error) { console.error("Could not save Cook & Complete progress.", error); notify("Progress could not be saved in this browser."); }
+      };
+      const notify = (text) => {
+        $("#toast-message").textContent = text;
+        $("#toast").classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 2800);
+      };
+      const timeLeft = (ms) => {
+        const seconds = Math.max(0, Math.ceil(ms / 1000));
+        return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+      };
+      const when = (timestamp) => {
+        const left = timestamp - Date.now();
+        if (left <= 0) return "Overdue";
+        const d = new Date(timestamp), sameDay = d.toDateString() === new Date().toDateString();
+        const tomorrow = d.toDateString() === new Date(Date.now() + 86400000).toDateString();
+        const date = sameDay ? "Today" : tomorrow ? "Tomorrow" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        return `${date} · ${d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+      };
+      const ago = (time) => {
+        const elapsed = Math.max(0, Date.now() - time);
+        if (elapsed < 60000) return "Just now";
+        if (elapsed < 3600000) return `${Math.floor(elapsed / 60000)}m ago`;
+        if (elapsed < 86400000) return `${Math.floor(elapsed / 3600000)}h ago`;
+        return `${Math.floor(elapsed / 86400000)}d ago`;
+      };
+      const icon = (name) => {
+        const paths = {
+          bandage: '<path d="m4 13 9-9a4 4 0 0 1 6 6l-9 9a4 4 0 0 1-6-6Z"/><path d="m7 10 6 6m-2-4h.01m2-2h.01m-4 4h.01m2-2h.01"/>',
+          shield: '<path d="M10 2 3.5 5v4.5c0 4.2 2.8 6.9 6.5 8.5 3.7-1.6 6.5-4.3 6.5-8.5V5L10 2Z"/><path d="m7 10 2 2 4-4"/>',
+          check: '<path d="m4 10 4 4 8-9"/><circle cx="10" cy="10" r="8"/>',
+          burn: '<path d="M10 2c1 4-4 5-2 9 1-2 3-2 4-5 4 4 5 8 1 11-4 3-10 0-9-5 .3-2 2-4 3-5 0 3 1 3 1 3 1-3 0-5 2-8Z"/>',
+          start: '<path d="M4 17h12M6 17V8h8v9M5 8l5-5 5 5m-6 3h2m2 3v3"/>',
+          clock: '<circle cx="10" cy="10" r="8"/><path d="M10 5v5l3 2"/>'
+        };
+        return `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.start}</svg>`;
+      };
+      const level = () => Math.floor(state.xp / 100) + 1;
+      const activeTasks = () => state.tasks.filter((task) => !task.completed);
+      const showHurt = () => {
+        $("#scene").classList.add("hurt");
+        $("#chef-smile").setAttribute("d", "M357 245q6-7 12 0");
+      };
+      const showSmoke = () => $("#scene").classList.add("smoking");
+      const setPenaltyStage = () => {
+        state.penaltyStartedAt = Date.now();
+        state.penaltyOrigin = "timer";
+      };
+      const shortPenalty = (reason) => {
+        if (state.penaltyStartedAt !== null || state.burned) return;
+        state.health = clamp(state.health - 20);
+        state.injured = true;
+        setPenaltyStage();
+        showHurt();
+        logEvent("hurt", `Chef Pip got a small cut: ${reason} Health −20%.`);
+        notify("Ouch! Chef Pip got a small cut. A Band-Aid can help.");
+      };
+      const longPenalty = (reason) => {
+        if (state.burned) return;
+        if (state.inventory.heatGuards > 0) {
+          state.inventory.heatGuards--;
+          state.penaltyStartedAt = null;
+          state.penaltyOrigin = null;
+          state.timerRemaining = START_TIMER_MS;
+          state.timerStamp = Date.now();
+          $("#scene").classList.remove("smoking");
+          logEvent("guard", "Your Heat Guard caught the burn and saved the dish!");
+          notify("Heat Guard activated! Your dish is safe.");
+          return;
+        }
+        state.burned = true;
+        state.quality = 0;
+        state.coins = Math.max(0, state.coins - 10);
+        state.timerRemaining = 0;
+        $("#scene").classList.add("burning", "smoking");
+        $("#kitchen-label").textContent = "KITCHEN ALERT";
+        $("#scene-message").textContent = "DISH BURNED! · COINS LOST";
+        $("#scene-status").textContent = "Dish Burned!";
+        $("#scene-status").classList.add("alert");
+        $("#quality-meter").classList.add("quality-burned");
+        logEvent("burn", `Dish Burned! ${reason} The meal turned black. −10 coins.`);
+        notify("Dish Burned! The meal is ruined and you lost 10 coins.");
+      };
+      const failOrDelay = (reason = "You delayed a task.") => {
+        if (state.penaltyStartedAt === null) shortPenalty(reason);
+        else longPenalty(reason);
+        save();
+        render();
+      };
+      const triggerAction = (action) => {
+        const scene = $("#scene");
+        scene.classList.remove("action-stir", "action-chop");
+        void scene.offsetWidth;
+        scene.classList.add(`action-${action}`);
+        clearTimeout(animationTimer);
+        animationTimer = setTimeout(() => scene.classList.remove(`action-${action}`), 2200);
+      };
+      const onTaskComplete = (task) => {
+        task.completed = true;
+        task.completedAt = Date.now();
+        state.coins += PRIORITY_REWARD[task.priority] || 10;
+        state.xp += task.priority === "high" ? 30 : task.priority === "low" ? 15 : 22;
+        state.quality = clamp(state.quality + 15);
+        state.timerRemaining = START_TIMER_MS;
+        state.timerStamp = Date.now();
+        state.penaltyStartedAt = null;
+        state.penaltyOrigin = null;
+        state.burned = false;
+        $("#scene").classList.remove("smoking", "burning");
+        $("#scene-status").classList.remove("alert");
+        $("#quality-meter").classList.remove("quality-burned");
+        $("#chef-smile").setAttribute("d", "M357 243q6 6 12 0");
+        const action = state.quality < 55 ? "chop" : "stir";
+        triggerAction(action);
+        if (task.repeat === "daily") {
+          state.tasks.push({ id: uid(), title: task.title, deadline: task.deadline + 86400000, priority: task.priority, repeat: "daily", completed: false, lateHandled: false });
+        }
+        logEvent("complete", `Task complete: “${task.title}” · Chef Pip ${action === "chop" ? "chopped veggies" : "stirred the pot"} · +15% quality · +10 coins.`);
+        if (state.quality >= 100) notify("Fresh and delicious! +15% quality and 10 coins.");
+        else notify(`Chef Pip ${action === "chop" ? "chopped the veggies" : "stirred the pot"}! +15% quality and 10 coins.`);
+      };
+      const renderTasks = () => {
+        let tasks = [...state.tasks];
+        if (currentFilter === "open") tasks = tasks.filter((task) => !task.completed);
+        if (currentFilter === "done") tasks = tasks.filter((task) => task.completed);
+        tasks.sort((a, b) => Number(a.completed) - Number(b.completed) || a.deadline - b.deadline);
+        $("#task-list").innerHTML = tasks.length ? tasks.map((task) => {
+          const overdue = !task.completed && task.deadline <= Date.now();
+          return `<div class="task-row ${task.completed ? "done" : ""}" data-id="${safe(task.id)}">
+            <input class="task-check" type="checkbox" aria-label="${task.completed ? "Mark incomplete" : "Complete"}: ${safe(task.title)}" ${task.completed ? "checked" : ""}>
+            <div><div class="task-title" title="${safe(task.title)}">${safe(task.title)}</div><div class="task-meta"><span class="${overdue ? "overdue" : ""}">◷ ${safe(when(task.deadline))}</span>${task.repeat === "daily" ? "<span>· ↻ Daily</span>" : ""}</div></div>
+            <div class="task-tools"><span class="priority ${safe(task.priority)}">${safe(task.priority)}</span><button class="task-icon edit-task" aria-label="Edit task">✎</button><button class="task-icon delete-task" aria-label="Delete task">×</button></div>
+          </div>`;
+        }).join("") : `<div class="empty">${icon("check")}${currentFilter === "done" ? "No finished tasks yet—your first cooking move is waiting." : "All clear! Add a small task to start cooking."}</div>`;
+      };
+      const renderShop = () => {
+        $("#shop-list").innerHTML = SHOP.map((item) => {
+          const owned = item.id === "heat-guard" && state.inventory.heatGuards > 0;
+          const canBuy = state.coins >= item.price && !owned && !(item.id === "bandage" && state.health >= 100);
+          const label = owned ? "Owned" : item.id === "bandage" && state.health >= 100 ? "Full health" : "Buy";
+          return `<div class="shop-item"><div class="shop-icon">${icon(item.icon)}</div><div class="shop-copy"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc}</div></div><button class="buy-button" data-item="${item.id}" ${canBuy ? "" : "disabled"}>${label}<br>${owned ? "" : `${item.price} coins`}</button></div>`;
+        }).join("");
+      };
+      const renderLog = () => {
+        const icons = { complete: "check", burn: "burn", hurt: "bandage", guard: "shield", start: "start", task: "check", shop: "shield" };
+        $("#log-list").innerHTML = state.log.length ? state.log.slice(0, 6).map((entry) => `<div class="log-row"><div class="log-icon">${icon(icons[entry.type] || "start")}</div><div class="log-text">${safe(entry.text)}<span class="log-time">${ago(entry.at)}</span></div></div>`).join("") : '<div class="empty">The kitchen stories will show up here.</div>';
+      };
+      const renderMeters = () => {
+        $("#quality-value").textContent = state.burned ? "Burned · 0%" : `${state.quality >= 65 ? "Fresh" : state.quality >= 30 ? "Okay" : "At risk"} · ${state.quality}%`;
+        $("#quality-fill").style.width = `${state.quality}%`;
+        $("#health-value").textContent = `${state.health}%`;
+        $("#health-fill").style.width = `${state.health}%`;
+        $("#coins-meter").textContent = `${state.coins}`;
+        $("#coins-fill").style.width = `${Math.min(100, state.coins)}%`;
+        $("#coin-count").textContent = state.coins;
+        const current = level();
+        $("#level-number").textContent = current;
+        $("#level-label").textContent = current;
+        $("#xp-label").textContent = `${state.xp % 100} / 100 XP`;
+        $("#xp-fill").style.width = `${state.xp % 100}%`;
+      };
+      const renderTimer = () => {
+        const left = Math.max(0, state.timerRemaining);
+        $("#timer-value").textContent = timeLeft(left);
+        $("#timer-value").classList.toggle("urgent", left < 30000 || state.penaltyStartedAt !== null);
+        $("#timer-hint").textContent = state.penaltyStartedAt !== null ? "· task overdue! act now" : "· a task resets it";
+      };
+      const render = () => {
+        document.documentElement.dataset.theme = state.theme === "night" ? "night" : "day";
+        $("#scene").classList.toggle("hurt", state.injured);
+        $("#scene").classList.toggle("smoking", state.penaltyStartedAt !== null || state.burned);
+        $("#scene").classList.toggle("burning", state.burned);
+        $("#scene-status").textContent = state.burned ? "Dish Burned!" : state.penaltyStartedAt !== null ? "Chef Pip needs help!" : "Simmering gently";
+        $("#scene-status").classList.toggle("alert", state.burned || state.penaltyStartedAt !== null);
+        $("#kitchen-label").textContent = state.burned ? "KITCHEN ALERT" : "THE LITTLE KITCHEN";
+        $("#scene-message").textContent = state.burned ? "DISH BURNED! · COINS LOST" : state.penaltyStartedAt !== null ? "QUICK · HELP CHEF PIP!" : "TASKS KEEP THE KITCHEN MOVING";
+        $("#theme-toggle").setAttribute("aria-label", state.theme === "night" ? "Switch to light theme" : "Switch to dark theme");
+        $("#theme-toggle").innerHTML = state.theme === "night"
+          ? '<svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2m0 12v2M2 10h2m12 0h2M4.3 4.3l1.4 1.4m8.6 8.6 1.4 1.4m0-11.4-1.4 1.4m-8.6 8.6-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+          : '<svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true"><path d="M16 12a7 7 0 0 1-8-8 7 7 0 1 0 8 8Z" stroke="currentColor" stroke-width="1.5"/></svg>';
+        document.querySelectorAll("[data-filter]").forEach((button) => {
+          const selected = button.dataset.filter === currentFilter;
+          button.classList.toggle("active", selected);
+          button.setAttribute("aria-selected", String(selected));
+        });
+        $("#quality-meter").classList.toggle("quality-burned", state.burned);
+        renderTimer(); renderMeters(); renderTasks(); renderShop(); renderLog();
+      };
+      const processClock = () => {
+        const now = Date.now();
+        const elapsed = Math.max(0, Math.min(60000, now - (state.timerStamp || now)));
+        state.timerStamp = now;
+        if (!state.burned && state.timerRemaining > 0) {
+          state.timerRemaining = Math.max(0, state.timerRemaining - elapsed);
+          if (state.timerRemaining === 0) shortPenalty("the simmer timer expired.");
+        }
+        if (state.penaltyStartedAt !== null && now - state.penaltyStartedAt >= INJURY_GRACE_MS) {
+          longPenalty(state.penaltyOrigin === "task" ? "the overdue task was ignored." : "the pot was left too long.");
+        }
+        for (const task of state.tasks) {
+          if (!task.completed && !task.lateHandled && task.deadline <= now) {
+            task.lateHandled = true;
+            if (state.penaltyStartedAt === null && !state.burned) {
+              shortPenalty(`“${task.title}” went overdue.`);
+              state.penaltyOrigin = "task";
+            }
+          }
+        }
+        save();
+        render();
+      };
+      const openTaskDialog = (task = null) => {
+        editingTask = task ? task.id : null;
+        $("#dialog-heading").textContent = task ? "Edit daily task" : "Add a daily task";
+        $("#save-task").textContent = task ? "Save changes" : "Add task";
+        $("#task-name").value = task ? task.title : "";
+        $("#task-deadline").value = task ? localInputValue(task.deadline) : localInputValue(Date.now() + 2 * 3600000);
+        $("#task-priority").value = task ? task.priority : "medium";
+        $("#task-repeat").value = task ? task.repeat : "once";
+        $("#task-dialog").showModal();
+        $("#task-name").focus();
+      };
+
+      $("#task-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const title = String(data.get("title")).trim();
+        const deadline = new Date(String(data.get("deadline"))).getTime();
+        if (!title || !Number.isFinite(deadline)) { notify("Enter a task and a valid deadline."); return; }
+        const values = { title, deadline, priority: String(data.get("priority")), repeat: String(data.get("repeat")) };
+        if (editingTask) {
+          const task = state.tasks.find((item) => item.id === editingTask);
+          if (task) { Object.assign(task, values); task.lateHandled = deadline <= Date.now() ? task.lateHandled : false; }
+          logEvent("task", `Updated “${title}”.`);
+        } else {
+          state.tasks.push({ id: uid(), ...values, completed: false, lateHandled: false });
+          logEvent("task", `Added “${title}” to today's list.`);
+        }
+        $("#task-dialog").close();
+        save(); render();
+      });
+      $("#add-task").addEventListener("click", () => openTaskDialog());
+      $("#close-dialog").addEventListener("click", () => $("#task-dialog").close());
+      $("#cancel-dialog").addEventListener("click", () => $("#task-dialog").close());
+      $("#task-list").addEventListener("change", (event) => {
+        if (!event.target.classList.contains("task-check")) return;
+        const row = event.target.closest("[data-id]");
+        const task = state.tasks.find((item) => item.id === row?.dataset.id);
+        if (!task) return;
+        if (event.target.checked) onTaskComplete(task);
+        else { task.completed = false; task.completedAt = null; logEvent("task", `Moved “${task.title}” back to the list.`); notify("Task moved back to your list."); }
+        save(); render();
+      });
+      $("#task-list").addEventListener("click", (event) => {
+        const row = event.target.closest("[data-id]");
+        const task = state.tasks.find((item) => item.id === row?.dataset.id);
+        if (!task) return;
+        if (event.target.closest(".edit-task")) openTaskDialog(task);
+        if (event.target.closest(".delete-task")) {
+          state.tasks = state.tasks.filter((item) => item.id !== task.id);
+          logEvent("task", `Removed “${task.title}” from the list.`);
+          save(); render();
+        }
+      });
+      document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        render();
+      }));
+      $("#delay-button").addEventListener("click", () => failOrDelay("you chose to fail/delay a task."));
+      $("#shop-list").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-item]");
+        if (!button || button.disabled) return;
+        const item = SHOP.find((product) => product.id === button.dataset.item);
+        if (!item || state.coins < item.price) return;
+        state.coins -= item.price;
+        if (item.id === "bandage") {
+          state.health = clamp(state.health + 20);
+          state.injured = false;
+          $("#scene").classList.remove("hurt");
+          $("#chef-smile").setAttribute("d", "M357 243q6 6 12 0");
+          logEvent("shop", "Chef Pip used a Band-Aid and recovered 20% health.");
+          notify("Band-Aid applied. Chef Pip feels better!");
+        } else {
+          state.inventory.heatGuards++;
+          logEvent("shop", "Bought a Heat Guard. It will block the next burn.");
+          notify("Heat Guard ready—it will protect the next dish.");
+        }
+        save(); render();
+      });
+      $("#theme-toggle").addEventListener("click", () => {
+        state.theme = state.theme === "night" ? "day" : "night";
+        save(); render();
+      });
+      $("#clear-log").addEventListener("click", () => { state.log = []; save(); renderLog(); });
+      window.addEventListener("storage", (event) => {
+        if (event.key !== STORAGE_KEY || !event.newValue) return;
+        try { state = { ...freshState(), ...JSON.parse(event.newValue) }; render(); }
+        catch (error) { console.error("Could not sync saved kitchen state.", error); }
+      });
+
+      // Apply elapsed wall-clock time after a refresh, so the simmer never silently pauses.
+      if (!state.burned && Number.isFinite(state.timerStamp)) {
+        state.timerRemaining = Math.max(0, state.timerRemaining - Math.max(0, Date.now() - state.timerStamp));
+      }
+      if (state.penaltyStartedAt !== null && Date.now() - state.penaltyStartedAt >= INJURY_GRACE_MS) {
+        longPenalty("the pot was left too long.");
+      } else if (state.timerRemaining <= 0 && !state.burned && state.penaltyStartedAt === null) {
+        state.timerRemaining = 0;
+        shortPenalty("the simmer timer expired.");
+      }
+      // Resolve overdue tasks on startup, just as the live timer does.
+      for (const task of state.tasks) {
+        if (!task.completed && !task.lateHandled && task.deadline <= Date.now()) {
+          task.lateHandled = true;
+          if (state.penaltyStartedAt === null && !state.burned) {
+            shortPenalty(`“${task.title}” went overdue.`);
+            state.penaltyOrigin = "task";
+          }
+        }
+      }
+      save();
+      render();
+      setInterval(processClock, TICK_MS);
+    })();
+  </script>
+</body>
+</html>
